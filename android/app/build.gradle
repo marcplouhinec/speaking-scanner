@@ -33,6 +33,7 @@ dependencies {
     compile "org.jetbrains.anko:anko-commons:$anko_version"
     compile group: 'io.reactivex.rxjava2', name: 'rxandroid', version: '2.0.1'
     compile 'com.github.barteksc:pdfium-android:1.5.0'
+    compile 'com.rmtheis:tess-two:6.3.0'
 }
 repositories {
     mavenCentral()

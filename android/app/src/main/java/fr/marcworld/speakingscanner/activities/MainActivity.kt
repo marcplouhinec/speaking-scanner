@@ -11,16 +11,15 @@ import android.support.v4.provider.DocumentFile
 import android.support.v7.app.AppCompatActivity
 import android.widget.ArrayAdapter
 import fr.marcworld.speakingscanner.R
+import fr.marcworld.speakingscanner.services.OcrService
 import fr.marcworld.speakingscanner.services.UsbFileService
+import fr.marcworld.speakingscanner.services.impl.OcrServiceImpl
 import fr.marcworld.speakingscanner.services.impl.UsbFileServiceImpl
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
-import org.jetbrains.anko.AnkoLogger
-import org.jetbrains.anko.alert
-import org.jetbrains.anko.indeterminateProgressDialog
-import org.jetbrains.anko.okButton
+import org.jetbrains.anko.*
 import java.io.File
 
 
@@ -36,6 +35,7 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
     private val OPEN_DOCUMENT_TREE_REQUEST_CODE = 1987
 
     private var usbFileService: UsbFileService? = null
+    private var ocrService: OcrService? = null
     private var scannedDocumentFiles: List<DocumentFile> = listOf()
     private var selectedScannedDocument: DocumentFile? = null
     private var subscriptions = CompositeDisposable()
@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
         if (permission != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), EXTERNAL_STORAGE_REQUEST_CODE)
         } else {
-            initializeUsbFileServiceAndDisplayDocuments()
+            initializeServicesAndDisplayDocuments()
         }
 
         // Handle document selection
@@ -64,7 +64,21 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
         analyzeButton.isEnabled = false
 
         // Handle the analyze button event
-        // TODO
+        analyzeButton.setOnClickListener {
+            val progressDialog = indeterminateProgressDialog(R.string.analyzing_documents)
+            progressDialog.show()
+
+            selectedScannedDocument?.let { scannedDocument ->
+                subscriptions.add(ocrService!!.readDocument(scannedDocument)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe { recognizedText ->
+                            info("recognizedText = $recognizedText")
+                            progressDialog.hide()
+                        })
+
+            }
+        }
 
         // Handle the refresh button event
         refreshButton.setOnClickListener {
@@ -92,7 +106,7 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
                     okButton { finish() }
                 }.show()
             } else {
-                initializeUsbFileServiceAndDisplayDocuments()
+                initializeServicesAndDisplayDocuments()
             }
         }
     }
@@ -102,7 +116,9 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
             if (resultCode == Activity.RESULT_OK) {
                 // Initialize the UsbFileService and display the documents
                 val rootDocumentFile = DocumentFile.fromTreeUri(this, intent?.data)
-                usbFileService = UsbFileServiceImpl(rootDocumentFile, contentResolver, this)
+                val usbFileServiceImpl = UsbFileServiceImpl(rootDocumentFile, contentResolver, this)
+                usbFileService = usbFileServiceImpl
+                ocrService = OcrServiceImpl(usbFileServiceImpl, this)
                 displayScannedDocuments()
             } else {
                 alert(R.string.error_storage_not_available) {
@@ -115,7 +131,7 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
     /**
      * Initialize the [UsbFileService] according to the current Android version, then call [displayScannedDocuments].
      */
-    private fun initializeUsbFileServiceAndDisplayDocuments() {
+    private fun initializeServicesAndDisplayDocuments() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), OPEN_DOCUMENT_TREE_REQUEST_CODE)
         } else {
@@ -125,7 +141,9 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
                     okButton { finish() }
                 }.show()
             } else {
-                usbFileService = UsbFileServiceImpl(DocumentFile.fromFile(usbStorageFile), contentResolver, this)
+                val usbFileServiceImpl = UsbFileServiceImpl(DocumentFile.fromFile(usbStorageFile), contentResolver, this)
+                usbFileService = usbFileServiceImpl
+                ocrService = OcrServiceImpl(usbFileServiceImpl, this)
                 displayScannedDocuments()
             }
         }
