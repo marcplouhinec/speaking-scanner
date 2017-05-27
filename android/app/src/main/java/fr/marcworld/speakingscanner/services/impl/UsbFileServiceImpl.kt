@@ -44,11 +44,15 @@ class UsbFileServiceImpl(
         }
     }
 
-    override fun findAllScannedDocumentFiles(): List<DocumentFile> {
-        return recursivelyFindScannedDocumentFiles(rootDocumentFile)
+    override fun findAllScannedDocumentFiles(): Observable<List<DocumentFile>> {
+        return Observable.create { subscriber ->
+            subscriber.onNext(recursivelyFindScannedDocumentFiles(rootDocumentFile))
+            subscriber.onComplete()
+        }
     }
 
     override fun readDocumentFileAsBitmap(documentFile: DocumentFile): Observable<Bitmap> {
+        // TODO handle PDF conversion
         return Observable.create { subscriber ->
             val parcelFileDescriptor = contentResolver.openFileDescriptor(documentFile.uri, "r")
             val image = parcelFileDescriptor.use {

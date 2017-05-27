@@ -14,7 +14,7 @@ interface UsbFileService {
     /**
      * @return all the image and PDF files in the USB storage.
      */
-    fun findAllScannedDocumentFiles(): List<DocumentFile>
+    fun findAllScannedDocumentFiles(): Observable<List<DocumentFile>>
 
     /**
      * Read the given [DocumentFile] and put the result in a [Bitmap].

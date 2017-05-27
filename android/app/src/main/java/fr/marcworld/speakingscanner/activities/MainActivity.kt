@@ -19,6 +19,7 @@ import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.alert
+import org.jetbrains.anko.indeterminateProgressDialog
 import org.jetbrains.anko.okButton
 import java.io.File
 
@@ -131,11 +132,22 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
     private fun displayScannedDocuments() {
         val currentUsbFileService = usbFileService ?: throw IllegalStateException("The usbFileService must be initialized.")
 
-        scannedDocumentFiles = currentUsbFileService.findAllScannedDocumentFiles()
-        val documentNames = scannedDocumentFiles
-                .sortedBy { -it.lastModified() }
-                .map { it.name }
-        documentListView.adapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, documentNames)
+        val progressDialog = indeterminateProgressDialog(R.string.loading_documents)
+        progressDialog.show()
+
+        subscriptions.add(currentUsbFileService.findAllScannedDocumentFiles()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { documentFiles ->
+                    scannedDocumentFiles = documentFiles
+
+                    val documentNames = scannedDocumentFiles
+                            .sortedBy { -it.lastModified() }
+                            .map { it.name }
+                    documentListView.adapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, documentNames)
+
+                    progressDialog.hide()
+                })
     }
 
     /**

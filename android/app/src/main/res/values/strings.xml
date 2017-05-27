@@ -6,4 +6,5 @@
     <string name="refresh_button">Refresh</string>
     <string name="analyze_button">Analyze</string>
     <string name="image_preview_content_description">Image preview</string>
+    <string name="loading_documents">Loading documents...</string>
 </resources>
