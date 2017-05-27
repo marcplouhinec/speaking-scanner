@@ -9,9 +9,11 @@ import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.provider.DocumentFile
 import android.support.v7.app.AppCompatActivity
+import android.widget.ArrayAdapter
 import fr.marcworld.speakingscanner.R
 import fr.marcworld.speakingscanner.services.UsbFileService
 import fr.marcworld.speakingscanner.services.impl.UsbFileServiceImpl
+import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.alert
 import org.jetbrains.anko.info
@@ -99,6 +101,11 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
         val currentUsbFileService = usbFileService ?: throw IllegalStateException("The usbFileService must be initialized.")
         val scannedDocumentFiles = currentUsbFileService.findAllScannedDocumentFiles()
         info("scannedDocumentFiles = ${scannedDocumentFiles.joinToString { it.name }}")
-        // TODO
+
+
+        val documentNames = scannedDocumentFiles
+                .sortedBy { -it.lastModified() }
+                .map { it.name }
+        documentListView.adapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, documentNames)
     }
 }
