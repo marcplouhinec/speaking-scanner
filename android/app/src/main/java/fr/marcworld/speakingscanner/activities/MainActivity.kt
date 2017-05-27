@@ -67,7 +67,11 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
         // TODO
 
         // Handle the refresh button event
-        // TODO
+        refreshButton.setOnClickListener {
+            scannedDocumentFiles = listOf()
+            selectedScannedDocument = null
+            displayScannedDocuments()
+        }
     }
 
     override fun onResume() {
