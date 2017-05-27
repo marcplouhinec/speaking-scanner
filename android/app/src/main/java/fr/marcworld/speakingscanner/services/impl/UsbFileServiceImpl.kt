@@ -1,10 +1,13 @@
 package fr.marcworld.speakingscanner.services.impl
 
 import android.content.ContentResolver
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.support.v4.provider.DocumentFile
+import com.github.barteksc.pdfviewer.source.ByteArraySource
+import com.shockwave.pdfium.PdfiumCore
 import fr.marcworld.speakingscanner.services.UsbFileService
 import io.reactivex.Observable
 import java.io.File
@@ -18,7 +21,9 @@ import java.lang.Exception
  */
 class UsbFileServiceImpl(
         val rootDocumentFile: DocumentFile,
-        val contentResolver: ContentResolver
+        val contentResolver: ContentResolver,
+        val context: Context,
+        val pdfiumCore: PdfiumCore = PdfiumCore(context)
 ) : UsbFileService {
 
     companion object {
@@ -51,14 +56,36 @@ class UsbFileServiceImpl(
         }
     }
 
-    override fun readDocumentFileAsBitmap(documentFile: DocumentFile): Observable<Bitmap> {
-        // TODO handle PDF conversion
+    override fun readDocumentFileAsByteArray(documentFile: DocumentFile): Observable<ByteArray> {
+        return Observable.create { subscriber ->
+            val byteArray = contentResolver.openInputStream(documentFile.uri).use {
+                it.buffered().readBytes()
+            }
+            subscriber.onNext(byteArray)
+            subscriber.onComplete()
+        }
+    }
+
+    override fun readDocumentFileAsBitmap(documentFile: DocumentFile, maxWidth: Int, maxHeight: Int): Observable<Bitmap> {
+        if (documentFile.name.toLowerCase().endsWith(".pdf")) {
+            return readDocumentFileAsByteArray(documentFile).map {
+                val documentSource = ByteArraySource(it)
+                val pdfDocument = documentSource.createDocument(context, pdfiumCore, null)
+                pdfiumCore.openPage(pdfDocument, 0)
+                val pageWidth = pdfiumCore.getPageWidth(pdfDocument, 0)
+                val pageHeight = pdfiumCore.getPageHeight(pdfDocument, 0)
+                val bitmap = Bitmap.createBitmap(pageWidth, pageHeight, Bitmap.Config.ARGB_8888)
+                pdfiumCore.renderPageBitmap(pdfDocument, bitmap, 0, 0, 0, pageWidth, pageHeight, false)
+                scaleBitmapIfTooBig(bitmap, maxWidth, maxHeight)
+            }
+        }
+
         return Observable.create { subscriber ->
             val parcelFileDescriptor = contentResolver.openFileDescriptor(documentFile.uri, "r")
-            val image = parcelFileDescriptor.use {
+            val bitmap = parcelFileDescriptor.use {
                 BitmapFactory.decodeFileDescriptor(parcelFileDescriptor.fileDescriptor)
             }
-            subscriber.onNext(image)
+            subscriber.onNext(scaleBitmapIfTooBig(bitmap, maxWidth, maxHeight))
             subscriber.onComplete()
         }
     }
@@ -79,5 +106,21 @@ class UsbFileServiceImpl(
                 .flatMap { recursivelyFindScannedDocumentFiles(it) }
 
         return childrenScannedDocuments + grandChildrenScannedDocuments
+    }
+
+    private fun scaleBitmapIfTooBig(bitmap: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
+        val scaledBitmap = when {
+            bitmap.width > maxWidth && bitmap.height > maxHeight -> when {
+                bitmap.width > bitmap.height -> Bitmap.createScaledBitmap(bitmap, maxWidth, bitmap.height * maxWidth / bitmap.width, false)
+                else -> Bitmap.createScaledBitmap(bitmap, bitmap.width * maxHeight / bitmap.height, maxHeight, false)
+            }
+            bitmap.width > maxWidth -> Bitmap.createScaledBitmap(bitmap, maxWidth, bitmap.height * maxWidth / bitmap.width, false)
+            bitmap.height > maxHeight -> Bitmap.createScaledBitmap(bitmap, bitmap.width * maxHeight / bitmap.height, maxHeight, false)
+            else -> return bitmap
+        }
+
+        bitmap.recycle()
+
+        return scaledBitmap
     }
 }

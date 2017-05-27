@@ -43,6 +43,7 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        setTitle(R.string.please_select_document)
 
         // Check if the application has the permission to read storage. If not, prompt the user.
         val permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -53,7 +54,7 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
         }
 
         // Handle document selection
-        documentListView.setOnItemClickListener { parent, view, position, id ->
+        documentListView.setOnItemClickListener { _, _, position, _ ->
             if (scannedDocumentFiles.lastIndex > position) {
                 selectScannedDocument(scannedDocumentFiles[position])
             }
@@ -97,7 +98,7 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
             if (resultCode == Activity.RESULT_OK) {
                 // Initialize the UsbFileService and display the documents
                 val rootDocumentFile = DocumentFile.fromTreeUri(this, intent?.data)
-                usbFileService = UsbFileServiceImpl(rootDocumentFile, contentResolver)
+                usbFileService = UsbFileServiceImpl(rootDocumentFile, contentResolver, this)
                 displayScannedDocuments()
             } else {
                 alert(R.string.error_storage_not_available) {
@@ -120,7 +121,7 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
                     okButton { finish() }
                 }.show()
             } else {
-                usbFileService = UsbFileServiceImpl(DocumentFile.fromFile(usbStorageFile), contentResolver)
+                usbFileService = UsbFileServiceImpl(DocumentFile.fromFile(usbStorageFile), contentResolver, this)
                 displayScannedDocuments()
             }
         }
@@ -139,11 +140,9 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { documentFiles ->
-                    scannedDocumentFiles = documentFiles
+                    scannedDocumentFiles = documentFiles.sortedBy { -it.lastModified() }
 
-                    val documentNames = scannedDocumentFiles
-                            .sortedBy { -it.lastModified() }
-                            .map { it.name }
+                    val documentNames = scannedDocumentFiles.map { it.name }
                     documentListView.adapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, documentNames)
 
                     progressDialog.hide()
@@ -161,7 +160,9 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
         analyzeButton.isEnabled = true
 
         // Show an image preview
-        subscriptions.add(currentUsbFileService.readDocumentFileAsBitmap(selectedScannedDocument)
+        val maxWidth = previewLinearLayout.width
+        val maxHeight = previewLinearLayout.height
+        subscriptions.add(currentUsbFileService.readDocumentFileAsBitmap(selectedScannedDocument, maxWidth, maxHeight)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { bitmap ->
