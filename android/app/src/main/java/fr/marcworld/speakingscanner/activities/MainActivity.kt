@@ -65,19 +65,7 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
 
         // Handle the analyze button event
         analyzeButton.setOnClickListener {
-            val progressDialog = indeterminateProgressDialog(R.string.analyzing_documents)
-            progressDialog.show()
-
-            selectedScannedDocument?.let { scannedDocument ->
-                subscriptions.add(ocrService!!.readDocument(scannedDocument)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe { recognizedText ->
-                            info("recognizedText = $recognizedText") // TODO
-                            progressDialog.hide()
-                        })
-
-            }
+            analyzeSelectedDocumentAndShowResult()
         }
 
         // Handle the refresh button event
@@ -190,5 +178,23 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
                 .subscribe { bitmap ->
                     previewImageView.setImageBitmap(bitmap)
                 })
+    }
+
+    /**
+     * Use the [OcrService] to analyze the selected document and show the result.
+     */
+    private fun analyzeSelectedDocumentAndShowResult() {
+        val progressDialog = indeterminateProgressDialog(R.string.analyzing_document)
+        progressDialog.show()
+
+        selectedScannedDocument?.let { scannedDocument ->
+            subscriptions.add(ocrService!!.readDocument(scannedDocument)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe { recognizedText ->
+                        progressDialog.hide()
+                        startActivity<AnalysisResultActivity>(AnalysisResultActivity.RECOGNIZED_TEXT_INTENT_NAME to recognizedText)
+                    })
+        }
     }
 }

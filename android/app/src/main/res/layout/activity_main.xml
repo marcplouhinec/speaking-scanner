@@ -57,6 +57,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:contentDescription="@string/image_preview_content_description"
+            android:importantForAccessibility="no"
             app:srcCompat="@android:color/transparent" />
     </LinearLayout>
 

@@ -48,7 +48,7 @@ class OcrServiceImpl(
 
     override fun readDocument(documentFile: DocumentFile): Observable<String> {
         return usbFileService.readDocumentFileAsBitmap(documentFile, Int.MAX_VALUE, Int.MAX_VALUE).map { bitmap ->
-            tessBaseAPI.setImage(bitmap) // TODO orientate image
+            tessBaseAPI.setImage(bitmap)
             tessBaseAPI.utF8Text
         }
     }

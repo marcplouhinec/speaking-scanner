@@ -6,6 +6,7 @@
     <string name="refresh_button">Refresh</string>
     <string name="analyze_button">Analyze</string>
     <string name="image_preview_content_description">Image preview</string>
-    <string name="loading_documents">Loading documents...</string>
-    <string name="analyzing_documents">Analyzing documents...</string>
+    <string name="loading_documents">Loading documents…</string>
+    <string name="analyzing_document">Analyzing document…</string>
+    <string name="analysis_result">Document analysis result</string>
 </resources>
