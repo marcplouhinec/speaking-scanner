@@ -3,6 +3,7 @@ package fr.marcworld.speakingscanner.services.impl
 import android.content.Context
 import android.support.v4.provider.DocumentFile
 import com.googlecode.tesseract.android.TessBaseAPI
+import fr.marcworld.speakingscanner.enums.TrainedDataLanguage
 import fr.marcworld.speakingscanner.services.OcrService
 import fr.marcworld.speakingscanner.services.UsbFileService
 import io.reactivex.Observable
@@ -40,9 +41,14 @@ class OcrServiceImpl(
             }
         }
 
+        // Check which language Tesseract must support
+        val trainedDataLanguage = TrainedDataLanguage.values().find {
+            context.resources.configuration.locale.language == it.locale.language
+        }
+
         // Initialize Tesseract
         val initializingTessBaseAPI = TessBaseAPI()
-        initializingTessBaseAPI.init(appDirectory.absolutePath, "eng") // TODO Set the language according according to the user's choice
+        initializingTessBaseAPI.init(appDirectory.absolutePath, trainedDataLanguage?.filePrefix ?: "eng")
         initializingTessBaseAPI
     }
 

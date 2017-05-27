@@ -144,6 +144,7 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
         val currentUsbFileService = usbFileService ?: throw IllegalStateException("The usbFileService must be initialized.")
 
         val progressDialog = indeterminateProgressDialog(R.string.loading_documents)
+        progressDialog.setCancelable(false)
         progressDialog.show()
 
         subscriptions.add(currentUsbFileService.findAllScannedDocumentFiles()
@@ -155,7 +156,7 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
                     val documentNames = scannedDocumentFiles.map { it.name }
                     documentListView.adapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, documentNames)
 
-                    progressDialog.hide()
+                    progressDialog.dismiss()
                 })
     }
 
@@ -185,6 +186,7 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
      */
     private fun analyzeSelectedDocumentAndShowResult() {
         val progressDialog = indeterminateProgressDialog(R.string.analyzing_document)
+        progressDialog.setCancelable(false)
         progressDialog.show()
 
         selectedScannedDocument?.let { scannedDocument ->
@@ -192,7 +194,7 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe { recognizedText ->
-                        progressDialog.hide()
+                        progressDialog.dismiss()
                         startActivity<AnalysisResultActivity>(AnalysisResultActivity.RECOGNIZED_TEXT_INTENT_NAME to recognizedText)
                     })
         }

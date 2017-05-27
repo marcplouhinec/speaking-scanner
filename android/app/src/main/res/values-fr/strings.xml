@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Scanner Parlant</string>
+    <string name="error_external_storage_not_granted">L\'application n\'est pas capable de continuer car elle n\'a pas la permission d\'accéder au stockage externe.</string>
+    <string name="error_storage_not_available">L\'application n\'est pas capable de continuer car elle ne peut pas accéder au stockage USB.</string>
+    <string name="please_select_document">Veuillez sélectionner un document</string>
+    <string name="refresh_button">Rafraichir</string>
+    <string name="analyze_button">Analyser</string>
+    <string name="image_preview_content_description">Aperçu de l\'image</string>
+    <string name="loading_documents">Chargement des documents…</string>
+    <string name="analyzing_document">Analyse du document…</string>
+    <string name="analysis_result">Résultat de l\'analyse</string>
+</resources>

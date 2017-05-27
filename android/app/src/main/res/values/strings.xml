@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Speaking Scanner</string>
     <string name="error_external_storage_not_granted">The application is unable to continue because it doesn\'t have the permission to access to external storage.</string>
-    <string name="error_storage_not_available">The application is unable to continue because it cannot read the USB storage.</string>
+    <string name="error_storage_not_available">The application is unable to continue because it cannot access to the USB storage.</string>
     <string name="please_select_document">Please select a document</string>
     <string name="refresh_button">Refresh</string>
     <string name="analyze_button">Analyze</string>
