@@ -13,10 +13,12 @@ import android.widget.ArrayAdapter
 import fr.marcworld.speakingscanner.R
 import fr.marcworld.speakingscanner.services.UsbFileService
 import fr.marcworld.speakingscanner.services.impl.UsbFileServiceImpl
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.alert
-import org.jetbrains.anko.info
 import org.jetbrains.anko.okButton
 import java.io.File
 
@@ -33,6 +35,9 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
     private val OPEN_DOCUMENT_TREE_REQUEST_CODE = 1987
 
     private var usbFileService: UsbFileService? = null
+    private var scannedDocumentFiles: List<DocumentFile> = listOf()
+    private var selectedScannedDocument: DocumentFile? = null
+    private var subscriptions = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +50,32 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
         } else {
             initializeUsbFileServiceAndDisplayDocuments()
         }
+
+        // Handle document selection
+        documentListView.setOnItemClickListener { parent, view, position, id ->
+            if (scannedDocumentFiles.lastIndex > position) {
+                selectScannedDocument(scannedDocumentFiles[position])
+            }
+        }
+
+        // When no document is selected, disable the analyze button
+        analyzeButton.isEnabled = false
+
+        // Handle the analyze button event
+        // TODO
+
+        // Handle the refresh button event
+        // TODO
+    }
+
+    override fun onResume() {
+        super.onResume()
+        subscriptions = CompositeDisposable()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        subscriptions.clear()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -65,7 +96,7 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
             if (resultCode == Activity.RESULT_OK) {
                 // Initialize the UsbFileService and display the documents
                 val rootDocumentFile = DocumentFile.fromTreeUri(this, intent?.data)
-                usbFileService = UsbFileServiceImpl(rootDocumentFile)
+                usbFileService = UsbFileServiceImpl(rootDocumentFile, contentResolver)
                 displayScannedDocuments()
             } else {
                 alert(R.string.error_storage_not_available) {
@@ -88,7 +119,7 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
                     okButton { finish() }
                 }.show()
             } else {
-                usbFileService = UsbFileServiceImpl(DocumentFile.fromFile(usbStorageFile))
+                usbFileService = UsbFileServiceImpl(DocumentFile.fromFile(usbStorageFile), contentResolver)
                 displayScannedDocuments()
             }
         }
@@ -99,13 +130,30 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
      */
     private fun displayScannedDocuments() {
         val currentUsbFileService = usbFileService ?: throw IllegalStateException("The usbFileService must be initialized.")
-        val scannedDocumentFiles = currentUsbFileService.findAllScannedDocumentFiles()
-        info("scannedDocumentFiles = ${scannedDocumentFiles.joinToString { it.name }}")
 
-
+        scannedDocumentFiles = currentUsbFileService.findAllScannedDocumentFiles()
         val documentNames = scannedDocumentFiles
                 .sortedBy { -it.lastModified() }
                 .map { it.name }
         documentListView.adapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, documentNames)
+    }
+
+    /**
+     * Handle the case when the user select a document.
+     */
+    private fun selectScannedDocument(selectedScannedDocument: DocumentFile) {
+        val currentUsbFileService = usbFileService ?: throw IllegalStateException("The usbFileService must be initialized.")
+        this.selectedScannedDocument = selectedScannedDocument
+
+        // Enable the analyze button
+        analyzeButton.isEnabled = true
+
+        // Show an image preview
+        subscriptions.add(currentUsbFileService.readDocumentFileAsBitmap(selectedScannedDocument)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { bitmap ->
+                    previewImageView.setImageBitmap(bitmap)
+                })
     }
 }
