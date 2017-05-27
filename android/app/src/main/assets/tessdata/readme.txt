@@ -1,0 +1,1 @@
+Data from https://github.com/tesseract-ocr/tessdata/tree/3.04.00

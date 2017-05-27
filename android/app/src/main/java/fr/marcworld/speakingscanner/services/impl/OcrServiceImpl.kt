@@ -53,8 +53,4 @@ class OcrServiceImpl(
         }
     }
 
-    private fun initializeTessBaseAPI() {
-
-    }
-
 }
