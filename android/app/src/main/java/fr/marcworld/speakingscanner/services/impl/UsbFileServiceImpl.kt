@@ -60,31 +60,33 @@ class UsbFileServiceImpl(
             val byteArray = contentResolver.openInputStream(documentFile.uri).use {
                 it.buffered().readBytes()
             }
-            subscriber.onNext(byteArray)
+            if (byteArray is ByteArray) {
+                subscriber.onNext(byteArray)
+            } else {
+                subscriber.onError(IllegalStateException("Unable to read the documentFile: '${documentFile.name}'."))
+            }
             subscriber.onComplete()
         }
     }
 
     override fun readDocumentFileAsBitmap(documentFile: DocumentFile, maxWidth: Int, maxHeight: Int): Observable<Bitmap> {
-        if (documentFile.name.toLowerCase().endsWith(".pdf")) {
-            return readDocumentFileAsByteArray(documentFile).map {
+        return readDocumentFileAsByteArray(documentFile).map {
+            val bitmap = if (documentFile.name.toLowerCase().endsWith(".pdf")) {
                 val pdfDocument = pdfiumCore.newDocument(it)
                 pdfiumCore.openPage(pdfDocument, 0)
                 val pageWidth = pdfiumCore.getPageWidth(pdfDocument, 0)
                 val pageHeight = pdfiumCore.getPageHeight(pdfDocument, 0)
                 val bitmap = Bitmap.createBitmap(pageWidth, pageHeight, Bitmap.Config.ARGB_8888)
                 pdfiumCore.renderPageBitmap(pdfDocument, bitmap, 0, 0, 0, pageWidth, pageHeight, false)
+                bitmap
+            } else {
+                BitmapFactory.decodeByteArray(it, 0, it.size)
+            }
+            if (bitmap is Bitmap) {
                 scaleBitmapIfTooBig(bitmap, maxWidth, maxHeight)
+            } else {
+                throw IllegalStateException("Unable to read the documentFile as a bitmap: '${documentFile.name}'.")
             }
-        }
-
-        return Observable.create { subscriber ->
-            val parcelFileDescriptor = contentResolver.openFileDescriptor(documentFile.uri, "r")
-            val bitmap = parcelFileDescriptor.use {
-                BitmapFactory.decodeFileDescriptor(parcelFileDescriptor.fileDescriptor)
-            }
-            subscriber.onNext(scaleBitmapIfTooBig(bitmap, maxWidth, maxHeight))
-            subscriber.onComplete()
         }
     }
 

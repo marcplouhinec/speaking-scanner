@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
@@ -39,6 +40,7 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
     private var scannedDocumentFiles: List<DocumentFile> = listOf()
     private var selectedScannedDocument: DocumentFile? = null
     private var subscriptions = CompositeDisposable()
+    private var imagePreviewBitmap: Bitmap? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -176,9 +178,13 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
         subscriptions.add(currentUsbFileService.readDocumentFileAsBitmap(selectedScannedDocument, maxWidth, maxHeight)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { bitmap ->
+                .subscribe({ bitmap ->
                     previewImageView.setImageBitmap(bitmap)
-                })
+                    imagePreviewBitmap?.recycle()
+                    imagePreviewBitmap = bitmap
+                }, { exception ->
+                    warn("Unable to preview the document.", exception)
+                }))
     }
 
     /**
@@ -193,10 +199,14 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
             subscriptions.add(ocrService!!.readDocument(scannedDocument)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe { recognizedText ->
+                    .subscribe({ recognizedText ->
                         progressDialog.dismiss()
                         startActivity<AnalysisResultActivity>(AnalysisResultActivity.RECOGNIZED_TEXT_INTENT_NAME to recognizedText)
-                    })
+                    }, { exception ->
+                        progressDialog.dismiss()
+                        warn("Unable to analyze the document.", exception)
+                        alert(R.string.error_unable_to_read_document) { okButton { } }.show()
+                    }))
         }
     }
 }

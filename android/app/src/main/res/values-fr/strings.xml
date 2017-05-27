@@ -9,4 +9,5 @@
     <string name="loading_documents">Chargement des documents…</string>
     <string name="analyzing_document">Analyse du document…</string>
     <string name="analysis_result">Résultat de l\'analyse</string>
+    <string name="error_unable_to_read_document">Impossible de lire le document.</string>
 </resources>
