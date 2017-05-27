@@ -6,7 +6,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.support.v4.provider.DocumentFile
-import com.github.barteksc.pdfviewer.source.ByteArraySource
 import com.shockwave.pdfium.PdfiumCore
 import fr.marcworld.speakingscanner.services.UsbFileService
 import io.reactivex.Observable
@@ -69,8 +68,7 @@ class UsbFileServiceImpl(
     override fun readDocumentFileAsBitmap(documentFile: DocumentFile, maxWidth: Int, maxHeight: Int): Observable<Bitmap> {
         if (documentFile.name.toLowerCase().endsWith(".pdf")) {
             return readDocumentFileAsByteArray(documentFile).map {
-                val documentSource = ByteArraySource(it)
-                val pdfDocument = documentSource.createDocument(context, pdfiumCore, null)
+                val pdfDocument = pdfiumCore.newDocument(it)
                 pdfiumCore.openPage(pdfDocument, 0)
                 val pageWidth = pdfiumCore.getPageWidth(pdfDocument, 0)
                 val pageHeight = pdfiumCore.getPageHeight(pdfDocument, 0)
