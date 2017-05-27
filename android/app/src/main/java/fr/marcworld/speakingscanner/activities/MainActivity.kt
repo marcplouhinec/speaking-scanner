@@ -73,7 +73,7 @@ class MainActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsRes
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe { recognizedText ->
-                            info("recognizedText = $recognizedText")
+                            info("recognizedText = $recognizedText") // TODO
                             progressDialog.hide()
                         })
 

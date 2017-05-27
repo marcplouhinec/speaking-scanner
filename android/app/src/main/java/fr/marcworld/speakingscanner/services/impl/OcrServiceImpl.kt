@@ -42,7 +42,7 @@ class OcrServiceImpl(
 
         // Initialize Tesseract
         val initializingTessBaseAPI = TessBaseAPI()
-        initializingTessBaseAPI.init(appDirectory.absolutePath, "eng") // Set the language according according to the user's choice
+        initializingTessBaseAPI.init(appDirectory.absolutePath, "eng") // TODO Set the language according according to the user's choice
         initializingTessBaseAPI
     }
 
