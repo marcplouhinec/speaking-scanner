@@ -17,31 +17,7 @@ Speaking Scanner does not directly use Text-to-speech technology, but instead re
 [Talkback](https://support.google.com/accessibility/android/answer/6283677), the native Android
 accessibility feature for visually impaired people.
 
-# Technologies
-Speaking Scanner is built with the following technologies:
-* The [Kotlin language](https://kotlinlang.org/) with its 
-  [Android extensions](https://kotlinlang.org/docs/tutorials/android-plugin.html).
-* [Tesseract](https://github.com/tesseract-ocr/tesseract), an open source OCR engine, that converts
-  images to text.
-* [Tess Two](https://github.com/rmtheis/tess-two), an easy way to use Tesseract in Android projects.
-* [Pdfium Android](https://github.com/barteksc/PdfiumAndroid), used for converting PDF files into bitmaps.
-* [RxAndroid](https://github.com/ReactiveX/RxAndroid), used for easily handling background processes.
-* [Anko](https://github.com/Kotlin/anko), a nice library that makes development faster when
-  programming Android applications with Kotlin.
-
-# Language support
-Two languages are currently supported: English and French. The application automatically chooses the
-language of the operating system.
-
-Adding an additional language can be done in three steps:
-1. Translate the file `app/src/main/res/values/strings.xml` 
-   ([read the official documentation here](https://developer.android.com/studio/write/translations-editor.html)).
-2. Copy the language-related trained data for Tesseract from 
-   [this repository](https://github.com/tesseract-ocr/tessdata/tree/3.04.00) to the folder
-   `app/src/main/assets/tessdata`.
-3. Add the language in the file `app/src/main/java/fr/marcworld/speakingscanner/enums/TrainedDataLanguage.kt`.
-
-# Build the application
+## Build and installation 
 In order to download and build Speaking Scanner, please execute the following instructions:
 * Setup [Git](https://git-scm.com/) on your computer.
 * Download the sources with the following command: `git clone https://github.com/marcplouhinec/speaking-scanner`
@@ -51,7 +27,7 @@ In order to download and build Speaking Scanner, please execute the following in
 * Plug your Android device to the computer with USB debugging enabled.
 * Run the application by clicking on the *Run* toolbar button.
 
-# Usage
+## Usage
 Please follow theses instructions in order to use Speaking Scanner:
 * Install Speaking Scanner on the Android device.
 * Turn on the scanner and plug it to the Android device via the USB OTG cable.
@@ -65,3 +41,27 @@ Please follow theses instructions in order to use Speaking Scanner:
 * Wait for the application to analyze the document.
 * Uses [Talkback](https://support.google.com/accessibility/android/answer/6283677) to read the
   recognized text that appears in the new screen.
+
+## Technologies
+Speaking Scanner is built with the following technologies:
+* The [Kotlin language](https://kotlinlang.org/) with its 
+  [Android extensions](https://kotlinlang.org/docs/tutorials/android-plugin.html).
+* [Tesseract](https://github.com/tesseract-ocr/tesseract), an open source OCR engine, that converts
+  images to text.
+* [Tess Two](https://github.com/rmtheis/tess-two), an easy way to use Tesseract in Android projects.
+* [Pdfium Android](https://github.com/barteksc/PdfiumAndroid), used for converting PDF files into bitmaps.
+* [RxAndroid](https://github.com/ReactiveX/RxAndroid), used for easily handling background processes.
+* [Anko](https://github.com/Kotlin/anko), a nice library that makes development faster when
+  programming Android applications with Kotlin.
+
+## Language support
+Two languages are currently supported: English and French. The application automatically chooses the
+language of the operating system.
+
+Adding an additional language can be done in three steps:
+1. Translate the file `app/src/main/res/values/strings.xml` 
+   ([read the official documentation here](https://developer.android.com/studio/write/translations-editor.html)).
+2. Copy the language-related trained data for Tesseract from 
+   [this repository](https://github.com/tesseract-ocr/tessdata/tree/3.04.00) to the folder
+   `app/src/main/assets/tessdata`.
+3. Add the language in the file `app/src/main/java/fr/marcworld/speakingscanner/enums/TrainedDataLanguage.kt`.
