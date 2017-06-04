@@ -3,6 +3,15 @@
 buildscript {
     ext.kotlin_version = '1.1.2-3'
     ext.anko_version = '0.10.0'
+    ext.constraint_layout_version = '1.0.2'
+    ext.appcompat_v7_version = '25.3.1'
+    ext.rxandroid_version = '2.0.1'
+    ext.pdfium_android_version = '1.5.0'
+    ext.tess_two_version = '6.3.0'
+
+    ext.junit_version = '4.12'
+    ext.espresso_core_version = '2.2.2'
+
     repositories {
         jcenter()
     }
