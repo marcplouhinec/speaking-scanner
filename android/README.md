@@ -4,6 +4,14 @@
 The goal of this application is to allow visually impaired people to read paper documents by using
 a portable scanner and their smartphone.
 
+Here is a demo video in English of the application:
+
+[![Demo Video in English](https://img.youtube.com/vi/9WenZS-TH1s/0.jpg)](https://www.youtube.com/watch?v=9WenZS-TH1s)
+
+Here is a demo video in French of the application:
+
+[![Demo Video in French](https://img.youtube.com/vi/-C-QZzlr7BM/0.jpg)](https://www.youtube.com/watch?v=-C-QZzlr7BM)
+
 The application requires the following devices:
 * A smartphone or tablet running 
 [Android 4.1 Jelly Bean or greater](https://en.wikipedia.org/wiki/Android_version_history#Android_4.1_Jelly_Bean_.28API_16.29)
