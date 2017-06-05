@@ -1,0 +1,12 @@
+{
+    "name": "wifiblebridge",
+    "version": "0.1.0",
+    "dependencies": {
+        "bleno": "0.4.0",
+		"crc": "3.4.0",
+		"log4js": "0.6.38",
+        "jsftp": "1.5.4",
+        "pdf2img": "0.2.0",
+        "imagemagick": "0.1.3"
+    }
+}

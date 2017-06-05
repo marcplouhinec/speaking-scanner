@@ -1,0 +1,25 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "a52bc5b7-a35c-4f56-8819-b0803ee141dd++505",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+    "a52bc5b7-a35c-4f56-8819-b0803ee141dd++505" : {
+
+    }
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "a52bc5b7-a35c-4f56-8819-b0803ee141dd++505" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "C79DB081-0CD5-4779-A672-7682981CBBAC",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "a52bc5b7-a35c-4f56-8819-b0803ee141dd++505" : “speakingscanner\/“
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : “SpeakingScanner",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "ios\/SpeakingScanner\/SpeakingScanner.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "svn:\/\/mplouhinec.dyndns.org\/speakingscanner",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Subversion",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "a52bc5b7-a35c-4f56-8819-b0803ee141dd++505"
+    }
+  ]
+}
