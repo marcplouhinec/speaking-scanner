@@ -4,7 +4,7 @@ The goal of this application is to allow visually impaired people to read paper 
 a portable scanner and their smartphone.
 
 This application has been developed in two versions:
-* The first one with an iOS device, a portable scanner, a WiFi-to-BLE bridge and a web-service.
+* [The first one with an iOS device, a portable scanner, a WiFi-to-BLE bridge and a web-service.](ios/README.md)
 * [The second one with an Android device, a portable scanner and a USB OTG cable.](android/README.md)
 
 The Android version is much simpler and faster than the iOS one. I started to develop with iOS
