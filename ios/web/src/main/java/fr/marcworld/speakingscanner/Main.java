@@ -5,11 +5,13 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 
 /**
- * Created by marcplouhinec on 13/09/16.
+ * Application entry-point.
+ *
+ * @author Marc Plouhinec
  */
 @EnableAutoConfiguration
-@ComponentScan("fr.mworld.speakingscanner.service")
-@ComponentScan("fr.mworld.speakingscanner.controller")
+@ComponentScan("fr.marcworld.speakingscanner.service")
+@ComponentScan("fr.marcworld.speakingscanner.controller")
 public class Main {
     public static void main(String[] args) {
         SpringApplication.run(Main.class, args);

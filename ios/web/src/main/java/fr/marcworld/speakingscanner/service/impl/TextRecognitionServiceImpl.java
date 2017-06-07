@@ -16,7 +16,9 @@ import javax.annotation.PostConstruct;
 import java.io.*;
 
 /**
- * Created by marcplouhinec on 13/09/16.
+ * Default implementation of {@link TextRecognitionService}.
+ *
+ * @author Marc Plouhinec
  */
 @Service
 public class TextRecognitionServiceImpl implements TextRecognitionService {

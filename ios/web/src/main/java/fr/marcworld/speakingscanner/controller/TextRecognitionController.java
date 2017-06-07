@@ -13,16 +13,29 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
- * Created by marcplouhinec on 13/09/16.
+ * REST controller for recognizing text on images.
+ *
+ * @author Marc Plouhinec
  */
 @RestController
 public class TextRecognitionController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TextRecognitionController.class);
 
-    @Autowired
-    private TextRecognitionService textRecognitionService;
+    private final TextRecognitionService textRecognitionService;
 
+    @Autowired
+    public TextRecognitionController(TextRecognitionService textRecognitionService) {
+        this.textRecognitionService = textRecognitionService;
+    }
+
+    /**
+     * Recognize the text on the given image for the given language.
+     *
+     * @param imageData Image file content.
+     * @param language Language of the text to recognize.
+     * @return Text recognition result.
+     */
     @RequestMapping(value = "/text_recognition/language/{language}", method = RequestMethod.POST)
     public TextRecognitionResponseDto textRecognition(
             @RequestBody byte[] imageData,

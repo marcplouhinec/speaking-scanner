@@ -1,7 +1,9 @@
 package fr.marcworld.speakingscanner.dto;
 
 /**
- * Created by marcplouhinec on 18/09/16.
+ * Simple object that contains a message.
+ *
+ * @author Marc Plouhinec
  */
 public class MessageDto {
 

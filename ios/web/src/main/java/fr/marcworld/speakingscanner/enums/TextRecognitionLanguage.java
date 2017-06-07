@@ -3,7 +3,7 @@ package fr.marcworld.speakingscanner.enums;
 /**
  * Supported language for Tesseract.
  *
- * Created by marcplouhinec on 13/09/16.
+ * @author Marc Plouhinec
  */
 public enum TextRecognitionLanguage {
     ENGLISH("eng"),

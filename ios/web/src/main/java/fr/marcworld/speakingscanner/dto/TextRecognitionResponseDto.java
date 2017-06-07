@@ -1,7 +1,9 @@
 package fr.marcworld.speakingscanner.dto;
 
 /**
- * Created by marcplouhinec on 18/09/16.
+ * Response sent after recognizing some text on an image.
+ *
+ * @author Marc Plouhinec
  */
 public class TextRecognitionResponseDto {
 

@@ -8,7 +8,7 @@
     <version>0.0.1-SNAPSHOT</version>
 	
 	<properties>
-		<spring.boot.version>1.4.0.RELEASE</spring.boot.version>
+		<spring.boot.version>1.5.3.RELEASE</spring.boot.version>
 		<tesseract.version>3.04.01-1.2</tesseract.version>
 
         <maven.compiler.target>1.8</maven.compiler.target>

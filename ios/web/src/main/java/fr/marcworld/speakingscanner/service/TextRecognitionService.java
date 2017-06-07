@@ -5,7 +5,9 @@ import fr.marcworld.speakingscanner.enums.TextRecognitionLanguage;
 import java.io.File;
 
 /**
- * Created by marcplouhinec on 13/09/16.
+ * Text recognition service.
+ *
+ * @author Marc Plouhinec
  */
 public interface TextRecognitionService {
 
