@@ -1,7 +1,7 @@
-# Speaking Scanner - Text recognition web services
+# Speaking Scanner - Text recognition web service
 
 ## Introduction
-The goal of this server is to provide a REST web-service for recognizing text inside images.
+The goal of this server is to provide a REST web service for recognizing text inside images.
 
 This application is built on top of the following technologies:
 * [Tesseract](https://github.com/tesseract-ocr/tesseract), an open source OCR engine, that converts
@@ -21,7 +21,7 @@ the following commands:
 To make sure the server is working, open a web browser, visit the page 
 [http://localhost:8080/](http://localhost:8080/) and check a welcome message is displayed.
 
-The text recognition web-service can be easily tested with [curl](https://curl.haxx.se/):
+The text recognition service can be easily tested with [curl](https://curl.haxx.se/):
 
     curl -v -H "Content-Type:image/jpeg" \
     -X POST --data-binary @path/to/image.jpg \
@@ -34,7 +34,7 @@ Where `path/to/image.jpg` must be a path to an image file that contains some tex
         "errorCode": null
     }
     
-In case of error, the result is something like:
+In case of error, the result looks like this:
 
     {
         "recognizedText": null,
