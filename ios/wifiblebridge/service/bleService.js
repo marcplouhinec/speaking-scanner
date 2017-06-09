@@ -44,6 +44,7 @@ const bleService = {
             const documentNames = _
                 .chain(fileNames)
                 .filter(name => name.toLowerCase().endsWith('.png'))
+                .drop(documentIndex)
                 .take(documentCount)
                 .value();
 
