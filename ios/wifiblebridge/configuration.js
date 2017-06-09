@@ -1,7 +1,7 @@
 /**
  * Configuration parameters.
  */
-var configuration = {
+const configuration = {
 	
 	scannerFtpHost: '10.10.100.1', // For tests: https://cartwrightlab.wikispaces.com/Setting+up+an+FTP+server+on+a+Mac
     scannerFtpPort: 21,

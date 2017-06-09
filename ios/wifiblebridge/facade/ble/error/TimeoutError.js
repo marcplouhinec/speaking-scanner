@@ -1,18 +1,20 @@
-var util = require('util');
-
 /**
  * Error thrown when a timeout occurred.
  *
- * @constructor
- * @augments Error
- * @param {string} message
+ * @author Marc Plouhinec
  */
-function TimeoutError (message) {
-	Error.captureStackTrace(this, this.constructor);
-	this.name = this.constructor.name;
-	this.message = message;
-}
+class TimeoutError extends Error {
 
-util.inherits(TimeoutError, Error);
+    /**
+     * Constructor.
+     *
+     * @param {string} message
+     */
+    constructor(message) {
+        super(message);
+
+        this.name = this.constructor.name;
+    }
+}
 
 module.exports = TimeoutError;

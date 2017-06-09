@@ -4,20 +4,20 @@
  * @author Marc Plouhinec
  */
 
-var bleFacade = require('./facade/ble/bleFacade');
+const bleFacade = require('./facade/ble/bleFacade');
+const ftpService = require('./service/ftpService');
+const jpgConversionService = require('./service/jpgConversionService');
+const distributionService = require('./service/distributionService');
 
+// Start the services and facade
 bleFacade.initialize();
-
-var ftpService = require('./service/ftpService');
-var jpgConversionService = require('./service/jpgConversionService');
-var distributionService = require('./service/distributionService');
 ftpService.startDownloadingNewFilesRegularly();
 jpgConversionService.startConvertingRegularly();
 distributionService.startPreparingDocumentsRegularly();
-/*
-setTimeout(function () {
-    ftpService.stopDownloadingNewFilesRegularly();
-    jpgConversionService.stopConvertingRegularly();
-    distributionService.stopPreparingDocumentsRegularly();
-}, 21000);
-*/
+
+// Stop the services after a while (for testing only)
+// setTimeout(() => {
+//     ftpService.stopDownloadingNewFilesRegularly();
+//     jpgConversionService.stopConvertingRegularly();
+//     distributionService.stopPreparingDocumentsRegularly();
+// }, 21000);

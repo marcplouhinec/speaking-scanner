@@ -1,32 +1,31 @@
-var fs = require("fs");
-var JSFtp = require("jsftp");
-var configuration = require('../configuration');
+const fs = require("fs");
+const _ = require('lodash');
+const JSFtp = require("jsftp");
+const configuration = require('../configuration');
 
 /**
  * Regularly connect via FTP to the scanner and download new files.
- * 
+ *
  * @author Marc Plouhinec
  */
-var ftpService = {
+const ftpService = {
 
     /**
      * @private
      * @type {boolean}
      */
-    'automaticDownloadingActive': false,
+    automaticDownloadingActive: false,
 
     /**
      * Start the regular process of downloading new documents.
      */
-    'startDownloadingNewFilesRegularly': function () {
-        var self = this;
-
+    startDownloadingNewFilesRegularly() {
         this.automaticDownloadingActive = true;
 
         // Schedule the next automatic download
-        var automaticDownload = function () {
-            if (self.automaticDownloadingActive) {
-                self.downloadNewFtpFiles(function (err) {
+        const automaticDownload = () => {
+            if (this.automaticDownloadingActive) {
+                this.downloadNewFtpFiles(err => {
                     if (err) {
                         console.log(err);
                     }
@@ -42,67 +41,64 @@ var ftpService = {
     /**
      * Stop the downloading process.
      */
-    'stopDownloadingNewFilesRegularly': function () {
+    stopDownloadingNewFilesRegularly() {
         this.automaticDownloadingActive = false;
     },
 
     /**
      * Connect to the scanner via FTP, download new files and close the connection.
-     * 
+     *
      * @private
-     * @param {function(err: ?Error)} callback
+     * @param {function(err: Error?)} callback
      *     Function called when the operation is finished sucessfully (err = null) or with an error.
      */
-    'downloadNewFtpFiles': function (callback) {
-        var self = this;
-
+    downloadNewFtpFiles(callback) {
         // Open a connection to the FTP server
-        var ftp = new JSFtp({
-			host: configuration.scannerFtpHost,
-			port: configuration.scannerFtpPort,
-			user: configuration.scannerFtpUser, 
-			pass: configuration.scannerFtpPassword
-		});
+        const ftp = new JSFtp({
+            host: configuration.scannerFtpHost,
+            port: configuration.scannerFtpPort,
+            user: configuration.scannerFtpUser,
+            pass: configuration.scannerFtpPassword
+        });
 
         // Prepare an error handler that close the FTP connection
-        var handleError = function (err) {
-            ftp.raw.quit(function(err2, data) {
-				if (err2) { console.error(err2) };
+        const handleError = err => {
+            ftp.raw.quit(err2 => {
+                if (err2) {
+                    console.error(err2)
+                }
+
                 callback(err);
-			});
+            });
         };
 
         // Find the file paths on the server
-        this.findAllFtpFilesOnServer(ftp, configuration.scannerFtpBasePath, function (err, serverFilePaths) {
-            if (err) { return handleError(err); }
+        this.findAllFtpFilesOnServer(ftp, configuration.scannerFtpBasePath, (err, serverFilePaths) => {
+            if (err) {
+                return handleError(err);
+            }
 
             // Find the files in the local folder
-            fs.readdir(configuration.localFtpDownloadedPath, function (err, localFileNames) {
-                if (err) { return handleError(err); }
-
-                // Index the local file names in a set
-                var trueBylocalFileName = {};
-                for (var j = 0; j < localFileNames.length; j++) {
-                    trueBylocalFileName[localFileNames[j]] = true;
+            fs.readdir(configuration.localFtpDownloadedPath, (err, localFileNames) => {
+                if (err) {
+                    return handleError(err);
                 }
 
                 // Compare the local files with the ones from the FTP server
-                var newServerFilePaths = [];
-                for (var i = 0; i < serverFilePaths.length; i++) {
-                    var serverFilePath = serverFilePaths[i];
-                    var correspondingLocalFileName = serverFilePath.replace(/\//g, '_');
-                    if (!trueBylocalFileName[correspondingLocalFileName]) {
-                        newServerFilePaths.push(serverFilePath);
-                    }
-                }
+                const localFileNameSet = new Set(localFileNames);
+                const newServerFilePaths = _.filter(serverFilePaths, path => !localFileNameSet.has(path.replace(/\//g, '_')));
 
                 // Download each new server file
-                self.downloadFtpFiles(ftp, newServerFilePaths, function (err) {
-                    if (err) { return handleError(err); }
+                this.downloadFtpFiles(ftp, newServerFilePaths, err => {
+                    if (err) {
+                        return handleError(err);
+                    }
 
                     // Close the connection
-                    ftp.raw.quit(function(err, data) {
-                        if (err) { return handleError(err); }
+                    ftp.raw.quit(err => {
+                        if (err) {
+                            return handleError(err);
+                        }
 
                         callback(null);
                     });
@@ -113,51 +109,47 @@ var ftpService = {
 
     /**
      * Recursively find all the files on the FTP server.
-     * 
+     *
      * @private
      * @param {JSFtp} ftp
      *     FTP service.
      * @param {string} basePath
      *     Current directory path on the FTP folder.
-     * @param {function(err: ?Error, filePaths: Array.<string>)} callback
+     * @param {function(err: Error?, filePaths: Array.<string>)} callback
      *     Function called when the operation is finished sucessfully (err = null) or with an error.
      */
-    'findAllFtpFilesOnServer': function (ftp, basePath, callback) {
-        var self = this;
-
-        ftp.ls(basePath, function(err, files) {
+    findAllFtpFilesOnServer(ftp, basePath, callback) {
+        ftp.ls(basePath, (err, files) => {
             if (err) {
                 callback(err, []);
                 return;
             }
 
-            var filePaths = [];
-            var processFile = function (fileIndex) {
+            const filePaths = [];
+            const processFile = fileIndex => {
                 if (fileIndex >= files.length) {
                     callback(null, filePaths);
                     return;
                 }
 
-                var file = files[fileIndex]
-                var fileName = file.name;
+                const file = files[fileIndex];
+                const fileName = file.name;
 
                 if (file.type === 1) { // Directory
-                    self.findAllFtpFilesOnServer(ftp, basePath + '/' + fileName, function (err, subFilePaths) {
+                    this.findAllFtpFilesOnServer(ftp, basePath + '/' + fileName, (err, subFilePaths) => {
                         if (err) {
                             callback(err, []);
                             return;
                         }
 
-                        for (var i = 0; i < subFilePaths.length; i++) {
-                            filePaths.push(fileName + '/' + subFilePaths[i]);
-                        }
+                        subFilePaths.forEach(path => filePaths.push(fileName + '/' + path));
 
                         processFile(fileIndex + 1);
                     });
 
                 } else { // File
-                    var isJpg = fileName.toLowerCase().endsWith('.jpg');
-                    var isPdf = fileName.toLowerCase().endsWith('.pdf');
+                    const isJpg = fileName.toLowerCase().endsWith('.jpg');
+                    const isPdf = fileName.toLowerCase().endsWith('.pdf');
                     if (isJpg || isPdf) {
                         filePaths.push(fileName);
                     }
@@ -166,30 +158,28 @@ var ftpService = {
                 }
             };
             processFile(0);
-		});
+        });
     },
 
     /**
      * Download the given files into the configured localFtpDownloadedPath.
-     * 
+     *
      * @private
      * @param {JSFtp} ftp
      *     FTP service.
      * @param {Array.<string>} serverFilePaths
      *     File paths on the FTP folder.
-     * @param {function(err: ?Error)} callback
+     * @param {function(err: Error?)} callback
      *     Function called when the operation is finished sucessfully (err = null) or with an error.
      */
-    'downloadFtpFiles': function (ftp, serverFilePaths, callback) {
-        var self = this;
-
-        var downloadFileAt = function (fileIndex) {
+    downloadFtpFiles(ftp, serverFilePaths, callback) {
+        const downloadFileAt = fileIndex => {
             if (fileIndex >= serverFilePaths.length) {
                 callback();
                 return;
             }
 
-            self.downloadFtpFile(ftp, serverFilePaths[fileIndex], function (err) {
+            this.downloadFtpFile(ftp, serverFilePaths[fileIndex], err => {
                 if (err) {
                     callback(err);
                     return;
@@ -203,22 +193,22 @@ var ftpService = {
 
     /**
      * Download the given file into the configured localFtpDownloadedPath.
-     * 
+     *
      * @private
      * @param {JSFtp} ftp
      *     FTP service.
      * @param {string} serverFilePath
      *     File path on the FTP folder.
-     * @param {function(err: ?Error)} callback
+     * @param {function(err: Error?)} callback
      *     Function called when the operation is finished sucessfully (err = null) or with an error.
      */
-    'downloadFtpFile': function (ftp, serverFilePath, callback) {
+    downloadFtpFile(ftp, serverFilePath, callback) {
         // Download the file into a downloading folder
-        var localFileName = serverFilePath.replace(/\//g, '_');
-        var localFilePath = configuration.localFtpDownloadingPath + '/' + localFileName;
-        var completeServerFilePath = configuration.scannerFtpBasePath + '/' + serverFilePath;
+        const localFileName = serverFilePath.replace(/\//g, '_');
+        const localFilePath = configuration.localFtpDownloadingPath + '/' + localFileName;
+        const completeServerFilePath = configuration.scannerFtpBasePath + '/' + serverFilePath;
         console.log('Download the file via FTP: ' + localFileName);
-        ftp.get(completeServerFilePath, localFilePath, function (hadErr) {
+        ftp.get(completeServerFilePath, localFilePath, hadErr => {
             if (hadErr) {
                 callback(new Error(
                     'Unable to download the file ' + serverFilePath + ' into ' + localFilePath + '.'));
@@ -226,8 +216,8 @@ var ftpService = {
             }
 
             // Move the file into the downloaded folder
-            var newLocalFilePath = configuration.localFtpDownloadedPath + '/' + localFileName;
-            fs.rename(localFilePath, newLocalFilePath, function (err) {
+            const newLocalFilePath = configuration.localFtpDownloadedPath + '/' + localFileName;
+            fs.rename(localFilePath, newLocalFilePath, err => {
                 callback(err);
             });
         });

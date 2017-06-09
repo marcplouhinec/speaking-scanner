@@ -1,33 +1,32 @@
-var fs = require("fs");
-var im = require('imagemagick');
-var configuration = require('../configuration');
+const fs = require("fs");
+const _ = require('lodash');
+const im = require('imagemagick');
+const configuration = require('../configuration');
 
 /**
  * Regularly prepare scanned documents in order to redistribute them via BLE to the iOS app.
  * Convert each downloaded or converted JPG file into compressed gray-levels PNG file and produce
  * an additional thumbnail.
- * 
+ *
  * @author Marc Plouhinec
  */
-var distributionService = {
+const distributionService = {
 
     /**
      * @private
      * @type {boolean}
      */
-    'automaticPreparationActive': false,
-    
+    automaticPreparationActive: false,
+
     /**
      * Start preparing scanned documents for distribution regularly.
      */
-    'startPreparingDocumentsRegularly': function () {
-        var self = this;
-
+    startPreparingDocumentsRegularly() {
         this.automaticPreparationActive = true;
 
-        var automaticConversion = function () {
-            if (self.automaticPreparationActive) {
-                self.convertAllDocuments(function (err) {
+        const automaticConversion = () => {
+            if (this.automaticPreparationActive) {
+                this.convertAllDocuments(err => {
                     if (err) {
                         console.log(err);
                     }
@@ -41,60 +40,60 @@ var distributionService = {
     },
 
     /**
-     * Stop preparing scanned documentsregularly.
+     * Stop preparing scanned documents regularly.
      */
-    'stopPreparingDocumentsRegularly': function () {
+    stopPreparingDocumentsRegularly() {
         this.automaticPreparationActive = false;
     },
 
     /**
      * Scan all the new JPG files and convert them ones by ones.
-     * 
+     *
      * @private
-     * @param {function(err: ?Error)} callback Function called when the conversion is done or interrupted by en error.
+     * @param {function(err: Error?)} callback Function called when the conversion is done or interrupted by en error.
      */
-    'convertAllDocuments': function (callback) {
-        var self = this;
-
+    convertAllDocuments(callback) {
         // Find all the JPG files to convert
-        fs.readdir(configuration.localToJpgConvertedPath, function (err, jpgFileNames) {
-            if (err) { return callback(err); }
+        fs.readdir(configuration.localToJpgConvertedPath, (err, jpgFileNames) => {
+            if (err) {
+                return callback(err);
+            }
 
             // Find all the already converted files
-            fs.readdir(configuration.distributionReadyThumbnailsPath, function (err, convertedFileNames) {
-                if (err) { return callback(err); }
-
-                var newFileNames = [];
-                for (var i = 0; i < jpgFileNames.length; i++) {
-                    var jpgFileName = jpgFileNames[i].toLowerCase();
-                    if (jpgFileName.endsWith('.jpg')) {
-                        jpgFileName = jpgFileName.substring(0, jpgFileName.lastIndexOf('.'));
-                        var isAlreadyConverted = false;
-                        for (var j = 0; j < convertedFileNames.length; j++) {
-                            var convertedFileName = convertedFileNames[j].toLowerCase();
-                            convertedFileName = convertedFileName.substring(0, convertedFileName.lastIndexOf('.'));
-                            if (jpgFileName === convertedFileName) {
-                                isAlreadyConverted = true;
-                                break;
-                            }
-                        }
-
-                        if (!isAlreadyConverted) {
-                            newFileNames.push(jpgFileNames[i]);
-                        }
-                    }
+            fs.readdir(configuration.distributionReadyThumbnailsPath, (err, convertedFileNames) => {
+                if (err) {
+                    return callback(err);
                 }
 
+                /** @type {Array.<String>} */
+                const extensionLessConvertedFileNames = _
+                    .chain(convertedFileNames)
+                    .map(name => name.toLowerCase())
+                    .map(name => name.substring(0, name.lastIndexOf('.')))
+                    .value();
+                const extensionLessConvertedFileNameSet = new Set(extensionLessConvertedFileNames);
+
+                const newFileNames = _
+                    .chain(jpgFileNames)
+                    .filter(name => name.toLowerCase().endsWith('.jpg'))
+                    .filter(name => {
+                        const extensionLessFileName = name.substring(0, name.lastIndexOf('.')).toLowerCase();
+                        return !extensionLessConvertedFileNameSet.has(extensionLessFileName);
+                    })
+                    .value();
+
                 // Convert each new file
-                var convertFileAtIndex = function (fileIndex) {
+                const convertFileAtIndex = fileIndex => {
                     if (fileIndex >= newFileNames.length) {
                         return callback();
                     }
 
-                    var newFileName = newFileNames[fileIndex];
+                    const newFileName = newFileNames[fileIndex];
                     console.log('Prepare the file ' + newFileName + ' for distribution.');
-                    self.convertDocument(configuration.localToJpgConvertedPath + '/' + newFileName, function (err) {
-                        if (err) { return callback(err); }
+                    this.convertDocument(configuration.localToJpgConvertedPath + '/' + newFileName, err => {
+                        if (err) {
+                            return callback(err);
+                        }
 
                         convertFileAtIndex(fileIndex + 1);
                     });
@@ -106,34 +105,42 @@ var distributionService = {
 
     /**
      * Resize and convert a document to gray-level and PNG.
-     * 
+     *
      * @private
      * @param {string} jpgFilePath
-     * @param {function(err: ?Error)} callback Function called when the conversion is done or interrupted by en error.
+     * @param {function(err: Error?)} callback Function called when the conversion is done or interrupted by en error.
      */
-    'convertDocument': function (jpgFilePath, callback) {
+    convertDocument(jpgFilePath, callback) {
         // Build the target file path
-        var fileName = jpgFilePath.substring(jpgFilePath.lastIndexOf('/') + 1);
-        var convertedFileName = fileName.substring(0, fileName.lastIndexOf('.')) + '.png';
-        var convertedFilePath = configuration.distributionPreparationPath + '/' + convertedFileName;
-        var thumbnailFilePath = configuration.distributionPreparationThumbnailsPath + '/' + convertedFileName;
-        var readyFilePath = configuration.distributionReadyPath + '/' + convertedFileName;
-        var readyThumbnailFilePath = configuration.distributionReadyThumbnailsPath + '/' + convertedFileName;
-        
+        const fileName = jpgFilePath.substring(jpgFilePath.lastIndexOf('/') + 1);
+        const convertedFileName = fileName.substring(0, fileName.lastIndexOf('.')) + '.png';
+        const convertedFilePath = configuration.distributionPreparationPath + '/' + convertedFileName;
+        const thumbnailFilePath = configuration.distributionPreparationThumbnailsPath + '/' + convertedFileName;
+        const readyFilePath = configuration.distributionReadyPath + '/' + convertedFileName;
+        const readyThumbnailFilePath = configuration.distributionReadyThumbnailsPath + '/' + convertedFileName;
+
         // Convert the file
-        im.convert([jpgFilePath, '-resize', '40%', '-colorspace', 'gray', '-depth', '4', convertedFilePath], function (err, stdout, stderr) {
-            if (err) { return callback(err); }
+        im.convert([jpgFilePath, '-resize', '40%', '-colorspace', 'gray', '-depth', '4', convertedFilePath], err => {
+            if (err) {
+                return callback(err);
+            }
 
             // Create the thumbnail
-            im.convert([jpgFilePath, '-resize', '8%', '-colorspace', 'gray', '-depth', '4', thumbnailFilePath], function (err, stdout, stderr) {
-                if (err) { return callback(err); }
+            im.convert([jpgFilePath, '-resize', '8%', '-colorspace', 'gray', '-depth', '4', thumbnailFilePath], err => {
+                if (err) {
+                    return callback(err);
+                }
 
                 // Copy the converted files to the ready folder
-                fs.rename(convertedFilePath, readyFilePath, function (err) {
-                    if (err) { return callback(err); }
+                fs.rename(convertedFilePath, readyFilePath, err => {
+                    if (err) {
+                        return callback(err);
+                    }
 
-                    fs.rename(thumbnailFilePath, readyThumbnailFilePath, function (err) {
-                        if (err) { return callback(err); }
+                    fs.rename(thumbnailFilePath, readyThumbnailFilePath, err => {
+                        if (err) {
+                            return callback(err);
+                        }
 
                         callback();
                     });
@@ -142,6 +149,5 @@ var distributionService = {
         });
     }
 };
-
 
 module.exports = distributionService;
