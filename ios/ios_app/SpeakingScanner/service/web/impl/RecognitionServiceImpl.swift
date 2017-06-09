@@ -13,7 +13,7 @@ import UIKit
 class RecognitionServiceImpl: RecognitionService {
     
     let LOGGER = Logger(name: "RecognitionServiceImpl")
-    fileprivate let WS_URL = "http://10.10.100.100:8080/text_recognition/language/FRENCH" // TODO set a production host with https and remove the option in the plist: http://stackoverflow.com/questions/31254725/transport-security-has-blocked-a-cleartext-http
+    fileprivate let WS_URL = "http://192.168.178.26:8080/text_recognition/language/FRENCH" // TODO set a production host with https and remove the option in the plist: http://stackoverflow.com/questions/31254725/transport-security-has-blocked-a-cleartext-http
     fileprivate static let INSTANCE = RecognitionServiceImpl()
     
     static func getInstance() -> RecognitionServiceImpl {

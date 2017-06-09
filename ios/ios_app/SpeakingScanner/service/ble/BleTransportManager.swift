@@ -266,14 +266,28 @@ class BleTransportManager: TransportManager {
             // Inform the progress callback
             self.onProgressUpdate(100)
             
-            // Send the result
-            LOGGER.debug("Return the complete response (receivedCrc = \(receivedCrc), computedCrc = \(computedCrc)): \(payload)")
-            let payloadData = Data(bytes: UnsafePointer<UInt8>(payload), count: payload.count)
-            if receivedCrc == computedCrc {
-                onResponseReceivedCompletely(payloadData, nil)
-            } else {
-                onResponseReceivedCompletely(payloadData, NSError(domain: "fr.marcworld.speakingscanner", code: ErrorCode.different_CRC.rawValue, userInfo: nil))
+            // Before returning the result, make sure the last ACK message is sent
+            LOGGER.debug("Wait for the last ACK message to be sent...")
+            func waitForAckMessage(onAckMessageSend: @escaping () -> Void) {
+                if (!self.requestMessageWaitingToBeSent) {
+                    onAckMessageSend()
+                } else {
+                    let dispatchTime = DispatchTime.now() + Double(Int64(BleTransportManager.ACKNOWLEDGEMENT_SENDING_PERIOD_MS * Int(NSEC_PER_MSEC))) / Double(NSEC_PER_SEC)
+                    DispatchQueue.main.asyncAfter(deadline: dispatchTime, execute: {
+                        waitForAckMessage(onAckMessageSend: onAckMessageSend)
+                    })
+                }
             }
+            waitForAckMessage(onAckMessageSend: {
+                // Send the result
+                self.LOGGER.debug("Return the complete response (receivedCrc = \(receivedCrc), computedCrc = \(computedCrc)): \(payload)")
+                let payloadData = Data(bytes: UnsafePointer<UInt8>(payload), count: payload.count)
+                if receivedCrc == computedCrc {
+                    self.onResponseReceivedCompletely(payloadData, nil)
+                } else {
+                    self.onResponseReceivedCompletely(payloadData, NSError(domain: "fr.marcworld.speakingscanner", code: ErrorCode.different_CRC.rawValue, userInfo: nil))
+                }
+            })
         }
     }
     
