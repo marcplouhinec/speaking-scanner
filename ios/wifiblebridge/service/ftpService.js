@@ -63,7 +63,7 @@ const ftpService = {
 
         // Prepare an error handler that close the FTP connection
         const handleError = err => {
-            ftp.raw.quit(err2 => {
+            ftp.raw('quit', err2 => {
                 if (err2) {
                     console.error(err2)
                 }
@@ -95,7 +95,7 @@ const ftpService = {
                     }
 
                     // Close the connection
-                    ftp.raw.quit(err => {
+                    ftp.raw('quit', err => {
                         if (err) {
                             return handleError(err);
                         }

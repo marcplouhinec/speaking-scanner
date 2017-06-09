@@ -2,12 +2,12 @@
  * Configuration parameters.
  */
 const configuration = {
-	
-	scannerFtpHost: '10.10.100.1', // For tests: https://cartwrightlab.wikispaces.com/Setting+up+an+FTP+server+on+a+Mac
+
+    scannerFtpHost: '192.168.178.26', // For tests: https://cartwrightlab.wikispaces.com/Setting+up+an+FTP+server+on+a+Mac
     scannerFtpPort: 21,
     scannerFtpUser: 'dsmobile',
     scannerFtpPassword: 'dsmobile',
-	scannerFtpBasePath: '/sda1/DCIM',
+    scannerFtpBasePath: '/sda1/DCIM',
 
     localFtpDownloadingPath: '/var/speakingscanner/ftpreception/downloading',
     localFtpDownloadedPath: '/var/speakingscanner/ftpreception/downloaded',
@@ -17,7 +17,7 @@ const configuration = {
     distributionPreparationThumbnailsPath: '/var/speakingscanner/distribution/preparation/thumnails',
     distributionReadyPath: '/var/speakingscanner/distribution/ready',
     distributionReadyThumbnailsPath: '/var/speakingscanner/distribution/ready/thumnails',
-    
+
     ftpServiceAutomaticDownloadingPeriodMs: 1000,
     toJpgConversionServiceAutomaticConversionPeriodMs: 1000,
     distributionServiceAutomaticConversionPeriodMs: 1000

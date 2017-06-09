@@ -67,6 +67,12 @@ class BleTransportManager extends TransportManager {
          * @type {Number}
          */
         this.lastSendResponseMessageTimestamp = 0;
+
+        /**
+         * @private
+         * @type {boolean}
+         */
+        this.isWaitingForAcknowledgement = false;
     }
 
     /**
@@ -78,20 +84,33 @@ class BleTransportManager extends TransportManager {
         this.requestCharacteristic = new RequestCharacteristic(requestMessage => {
             const isNewRequest = !this.lastReceivedRequestMessage ||
                 this.lastReceivedRequestMessage.correlationId !== requestMessage.correlationId;
-            this.lastReceivedRequestMessage = requestMessage;
-            this.lastReceivedRequestMessageTimestamp = Date.now();
-            LOGGER.debug('Receive a request message (isNewRequest = ' + isNewRequest + '): ', requestMessage, ', payload: ',
-                this.prepareBufferForLogger(requestMessage.payload, 'DEBUG'), ', ack: ',
-                this.prepareBufferForLogger(requestMessage.ack, 'DEBUG'));
+            LOGGER.debug('Receive a request message (isNewRequest = ' + isNewRequest + '): ', requestMessage);
 
             if (isNewRequest) {
-                this.requestHandlers.forEach(requestHandler => {
-                    try {
-                        requestHandler(requestMessage.action, requestMessage.correlationId, requestMessage.payload);
-                    } catch (e) {
-                        LOGGER.error('An error occurred when invoking a request handler.', e);
+                // Do not process this new request yet before the previous one is completely finished
+                const waitForPreviousRequestToFinish = onFinished => {
+                    if (!this.isWaitingForAcknowledgement) {
+                        onFinished();
+                    } else {
+                        LOGGER.debug('Waiting in order to not process the new request before the previous one is finished...');
+                        setTimeout(() => waitForPreviousRequestToFinish(onFinished), 100);
                     }
+                };
+                waitForPreviousRequestToFinish(() => {
+                    this.lastReceivedRequestMessage = requestMessage;
+                    this.lastReceivedRequestMessageTimestamp = Date.now();
+
+                    this.requestHandlers.forEach(requestHandler => {
+                        try {
+                            requestHandler(requestMessage.action, requestMessage.correlationId, requestMessage.payload);
+                        } catch (e) {
+                            LOGGER.error('An error occurred when invoking a request handler.', e);
+                        }
+                    });
                 });
+            } else {
+                this.lastReceivedRequestMessage = requestMessage;
+                this.lastReceivedRequestMessageTimestamp = Date.now();
             }
         });
         this.responseCharacteristic = new ResponseCharacteristic();
@@ -152,8 +171,7 @@ class BleTransportManager extends TransportManager {
     }
 
     respondWithBuffer(responseBuffer, correlationId, callback) {
-        LOGGER.debug('Respond with the buffer (correlationId = ' + correlationId + '): ',
-            this.prepareBufferForLogger(responseBuffer, 'DEBUG'));
+        LOGGER.debug('Respond with the buffer (correlationId = ' + correlationId + '): ', responseBuffer);
 
         // Create a bigger buffer that contain the response length (4 bytes), the response itself and a CRC8 (1 byte)
         const totalLength = 4 + responseBuffer.length + 1;
@@ -305,8 +323,7 @@ class BleTransportManager extends TransportManager {
                     index++;
 
                     if (index < responseMessages.length) {
-                        LOGGER.debug('Send the packet (index = ' + index + '): ', responseMessages[index], ', payload = ',
-                            this.prepareBufferForLogger(responseMessages[index].payload, 'DEBUG'));
+                        LOGGER.debug('Send the packet (index = ' + index + '): ', responseMessages[index]);
                         this.lastSendResponseMessageTimestamp = Date.now();
                         this.responseCharacteristic.sendResponseMessage(
                             responseMessages[index], sendResponseMessageCallback);
@@ -317,27 +334,29 @@ class BleTransportManager extends TransportManager {
                 }, BLE_CONNECTION_INTERVAL_MS / 3); // See https://github.com/Krb686/nanotimer
             }
         };
-        LOGGER.debug('Send the packet (index = ' + index + '): ', responseMessages[index], ', payload = ',
-            this.prepareBufferForLogger(responseMessages[index].payload, 'DEBUG'));
+        LOGGER.debug('Send the packet (index = ' + index + '): ', responseMessages[index]);
         this.lastSendResponseMessageTimestamp = Date.now();
         this.responseCharacteristic.sendResponseMessage(responseMessages[index], sendResponseMessageCallback);
     }
 
     /**
-     * Wait for a request message (that contains acknoledgement informartion).
+     * Wait for a request message (that contains acknowledgement information).
      *
      * @private
-     * @param {function(isTimeout: boolean)} callback Function called when an acknoledgement message has been received.
+     * @param {function(isTimeout: boolean)} callback Function called when an acknowledgement message has been received.
      */
     waitForAcknowledgement(callback) {
+        this.isWaitingForAcknowledgement = true;
         setTimeout(() => {
             const startWaitingTime = Date.now();
 
             const callWhenAckReceived = () => {
                 const isTimeout = Date.now() - startWaitingTime >= WAITING_FOR_ACK_TIMEOUT_MS;
                 if (this.lastSendResponseMessageTimestamp <= this.lastReceivedRequestMessageTimestamp) {
+                    this.isWaitingForAcknowledgement = false;
                     callback(false);
                 } else if (isTimeout) {
+                    this.isWaitingForAcknowledgement = false;
                     LOGGER.debug('Timeout error: no acknowledgement message came after ' +
                         WAITING_FOR_ACK_TIMEOUT_MS + 'ms.');
                     callback(true);
@@ -347,27 +366,6 @@ class BleTransportManager extends TransportManager {
             };
             setTimeout(callWhenAckReceived, BLE_CONNECTION_INTERVAL_MS);
         }, CLIENT_MSG_PROCESSING_TIME_MS)
-    }
-
-    /**
-     * Display the buffer in a string by converting each byte in decimal string.
-     *
-     * @private
-     * @param {Buffer} buffer Buffer to prepare.
-     * @param {string} logLevel Target log level in order to avoid wasting resources (e.g. 'DEBUG').
-     * @returns {string} Prepared buffer.
-     */
-    prepareBufferForLogger(buffer, logLevel) {
-        if (LOGGER.isLevelEnabled(logLevel)) {
-            const stringRepresentation = _
-                .chain(buffer)
-                .map(byte => '' + Number(byte))
-                .join(',')
-                .value();
-            return '[' + stringRepresentation + ']';
-        } else {
-            return 'Buffer';
-        }
     }
 }
 

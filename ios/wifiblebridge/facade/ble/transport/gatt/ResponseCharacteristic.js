@@ -47,7 +47,7 @@ class ResponseCharacteristic extends bleno.Characteristic {
      * Data can only be sent to the client if it is subscribed.
      *
      * @param {number} maxValueSize maximum data size
-     * @param {function} updateValueCallback callback to call when value has changed
+     * @param {function(data: Buffer)} updateValueCallback callback to call when value has changed
      */
     onSubscribe(maxValueSize, updateValueCallback) {
         LOGGER.info('ResponseCharacteristic subscribe');
