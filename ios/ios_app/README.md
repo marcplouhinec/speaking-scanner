@@ -20,5 +20,5 @@ Here is a valid sample value for the `WS_URL` constant:
     fileprivate let WS_URL = "http://192.168.178.26:8080/text_recognition/language/FRENCH"
 
 The next step is to build the application and execute it on an iOS device. For that you need to open
-the `ios_app` folder in [Xcode](https://developer.apple.com/xcode/), plug your iOS device on your computer
+the `ios_app` folder with [Xcode](https://developer.apple.com/xcode/), plug your iOS device on your computer
 and click on the "Run" button.
