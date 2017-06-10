@@ -41,3 +41,13 @@ In case of error, the result looks like this:
         "errorCode": "UNABLE_TO_UPLOAD_FILE"
     }
     
+
+## Language support
+Two languages are currently supported: English and French. The application automatically chooses the
+language of the operating system.
+
+Adding an additional language can be done in two steps:
+1. Copy the language-related trained data for Tesseract from 
+   [this repository](https://github.com/tesseract-ocr/tessdata/tree/3.04.00) to the folder
+   `src/main/resources/tessdata`.
+2. Add the language in the file `src/main/java/fr/marcworld/speakingscanner/enums/TextRecognitionLanguage.java`.
